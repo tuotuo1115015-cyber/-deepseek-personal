@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: deepseek-personal-preview-v2
+    runtime: static
+    repo: https://github.com/tuotuo1115015-cyber/-deepseek-personal
+    branch: main
+    buildCommand: bash scripts/render-build-preview.sh
+    staticPublishPath: ./publish
+    autoDeployTrigger: commit
