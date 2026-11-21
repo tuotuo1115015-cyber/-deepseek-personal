@@ -63,3 +63,36 @@
            <input
              ref={fileInputRef}
              type="file"
+
+--- a/src/services/chat/store.ts
++++ b/src/services/chat/store.ts
+@@ -51,6 +51,9 @@
+ /** 退避基数，第 n 次重试等待 2^n 倍；连续失败达到上限就放弃，把原始报错展示出来 */
+ const FILE_RETRY_BASE_DELAY = 1000
+ 
++/** V4 Pro 当前不支持服务端工具调用与自动标题；Flash 保留原有能力。 */
++const supportsServerTools = (model: ChatModel | null | undefined) => model !== 'deepseek-v4-pro'
++
+ /** 阅读链接始终开启，智能搜索开关控制是否另行声明搜索工具（含边想边搜）。 */
+ const serverTools = (search: boolean): CreateMessageRequest['tools'] => {
+   const tools: CreateMessageRequest['tools'] = [
+@@ -985,7 +988,7 @@
+  */
+ const streamReply = async (sessionId: string, initial: AssistantMessage, request: Request) => {
+   const controller = new AbortController()
+-  if (!getSession(sessionId)?.title) {
++  if (!getSession(sessionId)?.title && supportsServerTools(initial.model)) {
+     titleRequests.add(controller)
+   }
+   set((state) => ({ streaming: { ...state.streaming, [sessionId]: controller } }))
+@@ -1028,7 +1031,9 @@
+             messages,
+             thinking: { type: initial.thinking ? 'enabled' : 'disabled' },
+             safety_check: SAFETY_CHECK,
+-            tools: serverTools(initial.search ?? false),
++            ...(supportsServerTools(initial.model)
++              ? { tools: serverTools(initial.search ?? false) }
++              : {}),
+             ...(titleRequests.has(controller) ? { title: { enabled: true } } : {}),
+           },
+           controller.signal
