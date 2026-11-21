@@ -17,8 +17,8 @@ import styles from './HistoryPickerDialog.module.css'
 
 type Mode = 'pick' | 'merge'
 type Props = { open: boolean; historyBusy: boolean; onClose: () => void; onReplace: (file: File) => void }
-const keyOf = (packageId: string, sessionId: string) => \`\${packageId}\0\${sessionId}\`
-const formatSize = (bytes: number) => bytes < 1024 * 1024 ? \`\${(bytes / 1024).toFixed(1)} KB\` : \`\${(bytes / 1024 / 1024).toFixed(1)} MB\`
+const keyOf = (packageId: string, sessionId: string) => `${packageId}\0${sessionId}`
+const formatSize = (bytes: number) => bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
 const formatDate = (value: string) => value ? value.slice(0, 16).replace('T', ' ') : ''
 const progressLabels = {
   conversations: 'historyPickerProgressConversations',
@@ -47,7 +47,7 @@ const SessionRow = ({
       const source = await session.json.text()
       let formatted = source
       try { formatted = JSON.stringify(JSON.parse(source), null, 2) } catch { /* Keep source text. */ }
-      setPreview(formatted.length > 30000 ? \`\${formatted.slice(0, 30000)}\n\${t('historyPickerPreviewTruncated')}\` : formatted)
+      setPreview(formatted.length > 30000 ? `${formatted.slice(0, 30000)}\n${t('historyPickerPreviewTruncated')}` : formatted)
     } catch {
       setPreview(t('historyPickerPreviewFailed'))
     }
@@ -62,7 +62,7 @@ const SessionRow = ({
           <span className={styles.sessionTitle}>{session.title}</span>
           <span className={styles.sessionMeta}>
             {formatDate(session.updatedAt)} · {formatSize(session.size)} · {t('historyPickerImageCount', { count: session.imageCount })}
-            {duplicate ? \` · \${t('historyPickerDuplicateMark')}\` : ''}
+            {duplicate ? ` · ${t('historyPickerDuplicateMark')}` : ''}
           </span>
         </summary>
         <pre className={styles.preview}>{loaded ? preview : t('historyPickerPreviewLoading')}</pre>
@@ -116,7 +116,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   }, [selected, preferences])
   const mergeNeedsMore = mode === 'merge' && mergePackages.length < 2
   const canBuild = chosen.length > 0 && !mergeNeedsMore && !busy
-  const autoName = chosen.length === 0 ? '' : chosen.length === 1 ? chosen[0].session.title : \`\${chosen[0].session.title}等\${chosen.length}个\`
+  const autoName = chosen.length === 0 ? '' : chosen.length === 1 ? chosen[0].session.title : `${chosen[0].session.title}等${chosen.length}个`
 
   const loadFiles = async (files: File[], append: boolean) => {
     if (!files.length || busy) return
@@ -127,7 +127,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
       const current = mode === 'pick' ? pickPackages : mergePackages
       const added: ArchivePackage[] = []
       for (const file of files) {
-        const id = \`\${Date.now()}-\${Math.random().toString(36).slice(2, 8)}\`
+        const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
         added.push(await readArchivePackage(file, id))
       }
       const next = append ? [...current, ...added] : added.slice(0, 1)
@@ -150,7 +150,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
     try {
       const { name, blob } = await exportHistory()
       const file = new File([blob], name, { type: 'application/zip' })
-      const pack = await readArchivePackage(file, \`local-\${Date.now()}\`)
+      const pack = await readArchivePackage(file, `local-${Date.now()}`)
       setMergePackages((current) => [...current, pack])
       setStatus(t('historyPickerLocalAdded', { count: pack.sessions.length }))
     } catch {
@@ -263,7 +263,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
                   <div className={styles.packageActions}>
                     <Button variant="outlined" size="s" onClick={() => setPackageSelection(pack, true)}>{t('historyPickerSelectPackage')}</Button>
                     <Button variant="outlined" size="s" onClick={() => setPackageSelection(pack, false)}>{t('historyPickerClearPackage')}</Button>
-                    <Button variant="outlined" size="s" onClick={() => { setMergePackages((current) => current.filter((item) => item.id !== pack.id)); setSelection((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(\`\${pack.id}\0\`)))); setGenerated(null) }}>{t('historyPickerRemovePackage')}</Button>
+                    <Button variant="outlined" size="s" onClick={() => { setMergePackages((current) => current.filter((item) => item.id !== pack.id)); setSelection((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${pack.id}\0`)))); setGenerated(null) }}>{t('historyPickerRemovePackage')}</Button>
                   </div>
                 ) : null}
                 {pack.sessions.filter(filtered).map((session) => (
@@ -289,7 +289,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
                 return (
                   <div className={styles.duplicateRow} key={id}>
                     <div className={styles.duplicateTitle}>{group[0].session.title}</div>
-                    <div className={styles.muted}>{group.map(({ pack, session }) => \`\${pack.name}: \${formatDate(session.updatedAt)} · \${formatSize(session.size)}\${session === newest.session ? \` · \${t('historyPickerNewest')}\` : ''}\`).join('\n')}</div>
+                    <div className={styles.muted}>{group.map(({ pack, session }) => `${pack.name}: ${formatDate(session.updatedAt)} · ${formatSize(session.size)}${session === newest.session ? ` · ${t('historyPickerNewest')}` : ''}`).join('\n')}</div>
                     <Select value={preferences[id] ?? 'newer'} options={options} onChange={(value) => { setPreferences((current) => ({ ...current, [id]: value })); setGenerated(null) }} ariaLabel={t('historyPickerDuplicateChoice')} />
                   </div>
                 )
@@ -307,7 +307,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
             {mergeNeedsMore ? <div className={styles.muted}>{t('historyPickerNeedTwoPackages')}</div> : null}
             {progress ? (
               <>
-                <div className={styles.progressTrack}><div className={styles.progressFill} style={{ width: \`\${progress.percent}%\` }} /></div>
+                <div className={styles.progressTrack}><div className={styles.progressFill} style={{ width: `${progress.percent}%` }} /></div>
                 <div className={styles.progressLabel}>{t(progressLabels[progress.stage])} · {progress.percent}%</div>
               </>
             ) : null}
