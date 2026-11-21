@@ -262,15 +262,7 @@ jobs:
 
       - name: Lint check
         working-directory: extracted/deepseek-personal-v0.2.0
-        run: pnpm exec oxlint src/components/settings/HistoryPickerDialog.tsx src/services/chat/history/mergeArchive.ts src/components/settings/SettingsDialog.tsx src/i18n/zh.ts src/i18n/en.ts --format json > ../../history-picker-lint.json || true
-
-      - name: Upload lint diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: history-picker-lint-diagnostics
-          path: history-picker-lint.json
-          if-no-files-found: error
-          retention-days: 7
+        run: pnpm lint
 
       - name: Production build
         working-directory: extracted/deepseek-personal-v0.2.0
