@@ -130,10 +130,22 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
         const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
         added.push(await readArchivePackage(file, id))
       }
-      const next = append ? [...current, ...added] : added.slice(0, 1)
+      const replacingMain = !append && mode === 'pick' && current.length > 0
+      const next = append
+        ? [...current, ...added]
+        : replacingMain
+          ? [added[0], ...current.slice(1)]
+          : added.slice(0, 1)
       if (mode === 'pick') { setPickPackages(next) }
       else { setMergePackages(next) }
-      if (!append) { setSelection({}) }
+      if (replacingMain) {
+        const oldMainId = current[0].id
+        setSelection((selectedState) => Object.fromEntries(
+          Object.entries(selectedState).filter(([key]) => !key.startsWith(`${oldMainId}::`))
+        ))
+      } else if (!append) {
+        setSelection({})
+      }
       setPreferences({})
       setStatus(t('historyPickerLoaded', { packages: next.length, sessions: next.reduce((sum, pack) => sum + pack.sessions.length, 0) }))
     } catch {
