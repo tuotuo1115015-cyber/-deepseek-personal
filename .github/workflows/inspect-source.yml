@@ -1,0 +1,22 @@
+name: Inspect uploaded source ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Inspect source archive
+        run: |
+          set -euo pipefail
+          test -f deepseek-personal-v0.2.0-source.zip
+          echo "=== ZIP archive listing ==="
+          unzip -l deepseek-personal-v0.2.0-source.zip
+          echo "=== Root entries ==="
+          unzip -Z1 deepseek-personal-v0.2.0-source.zip | sed -n '1,100p'
