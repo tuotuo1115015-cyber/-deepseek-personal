@@ -48,7 +48,7 @@ const fail = (message: string): never => { throw new Error(message) }
 
 /** Validate a v3 archive. Session JSON stays as Blob references; image entries are skipped. */
 export const readArchivePackage = async (file: File, id: string): Promise<ArchivePackage> => {
-  if (!(await isZipFile(file))) fail('Invalid ZIP file')
+  if (!(await isZipFile(file))) { fail('Invalid ZIP file') }
   let manifestSeen = false
   let index: SessionIndexEntry[] | null = null
   const sessions = new Map<string, { data: SessionFile; json: Blob; size: number }>()
@@ -57,16 +57,16 @@ export const readArchivePackage = async (file: File, id: string): Promise<Archiv
   try {
     for await (const entry of readArchive(file)) {
       if (!manifestSeen) {
-        if (entry.path !== MANIFEST_PATH) fail('manifest.json must be first')
+        if (entry.path !== MANIFEST_PATH) { fail('manifest.json must be first') }
         checkManifest(await parseJson(await readEntry(entry)))
         manifestSeen = true
         continue
       }
       if (entry.path === INDEX_PATH) {
-        if (index) fail('Duplicate session index')
+        if (index) { fail('Duplicate session index') }
         const raw = await parseJson(await readEntry(entry))
         readSessionIndex(raw)
-        if (!Array.isArray(raw)) fail('Invalid session index')
+        if (!Array.isArray(raw)) { fail('Invalid session index') }
         index = raw as SessionIndexEntry[]
         continue
       }
@@ -76,10 +76,10 @@ export const readArchivePackage = async (file: File, id: string): Promise<Archiv
       }
       const sessionId = parseSessionPath(entry.path)
       if (sessionId) {
-        if (index || sessions.has(sessionId)) fail('Invalid session entry order')
+        if (index || sessions.has(sessionId)) { fail('Invalid session entry order') }
         const json = await readEntry(entry)
         const data = readSessionFile(await parseJson(json))
-        if (data.id !== sessionId) fail('Session ID does not match its path')
+        if (data.id !== sessionId) { fail('Session ID does not match its path') }
         sessions.set(sessionId, { data, json, size: entry.size })
         continue
       }
@@ -92,20 +92,23 @@ export const readArchivePackage = async (file: File, id: string): Promise<Archiv
       await skipEntry(entry)
     }
   } catch (error) {
-    if (error instanceof ArchiveError) fail('The ZIP archive is damaged or unsupported')
+    if (error instanceof ArchiveError) { fail('The ZIP archive is damaged or unsupported') }
     throw error
   }
 
   const finalIndex = index
-  if (!manifestSeen) throw new Error('Missing manifest')
-  if (finalIndex === null) throw new Error('Missing session index')
+  if (!manifestSeen) { throw new Error('Missing manifest') }
+  if (finalIndex === null) { throw new Error('Missing session index') }
   const indexIds = new Set(finalIndex.map((item) => item.id))
-  if (indexIds.size !== finalIndex.length || finalIndex.length !== sessions.size) fail('Index does not match sessions')
-  for (const sessionId of sessions.keys()) if (!indexIds.has(sessionId)) fail('Session missing from index')
+  if (indexIds.size !== finalIndex.length || finalIndex.length !== sessions.size) { fail('Index does not match sessions') }
+  for (const sessionId of sessions.keys()) {
+    if (!indexIds.has(sessionId)) { fail('Session missing from index') }
+  }
 
   const byId = new Map(finalIndex.map((item) => [item.id, item]))
   const result: ArchiveSession[] = [...sessions.entries()].map(([sessionId, item]) => {
-    const meta = byId.get(sessionId)!
+    const meta = byId.get(sessionId)
+    if (!meta) { throw new Error('Session missing from index') }
     return {
       id: sessionId,
       title: meta.title ?? item.data.title ?? sessionId,
@@ -131,7 +134,7 @@ const resolveSelected = (
   for (const item of selected) {
     const pack = packageMap.get(item.packageId)
     const session = pack?.sessions.find((candidate) => candidate.id === item.sessionId)
-    if (!pack || !session) continue
+    if (!pack || !session) { continue }
     const group = grouped.get(session.id) ?? []
     group.push({ pack, session })
     grouped.set(session.id, group)
@@ -140,7 +143,7 @@ const resolveSelected = (
     const preferred = preferences[sessionId]
     if (preferred && preferred !== 'newer') {
       const explicit = candidates.find((candidate) => candidate.pack.id === preferred)
-      if (explicit) return explicit
+      if (explicit) { return explicit }
     }
     return candidates.reduce((latest, current) =>
       current.session.updatedAt.localeCompare(latest.session.updatedAt) > 0 ? current : latest
@@ -157,7 +160,7 @@ export const buildMergedArchive = async (
   onProgress: (progress: MergeProgress) => void = () => {}
 ): Promise<Blob> => {
   const chosen = resolveSelected(packages, selected, preferences)
-  if (!chosen.length) fail('Select at least one conversation')
+  if (!chosen.length) { fail('Select at least one conversation') }
 
   const manifest: Manifest = { export_format_version: EXPORT_FORMAT_VERSION }
   const entries: { name: string; blob: Blob }[] = [
@@ -179,8 +182,8 @@ export const buildMergedArchive = async (
   const selectedImagePaths = new Map<string, Set<string>>()
   if (!omitImages) {
     for (const { pack, session } of chosen) {
-      if (!session.images.length) continue
-      selectedImagePaths.set(`${pack.id}\0${session.id}`, new Set(session.images.map((image) => image.path)))
+      if (!session.images.length) { continue }
+      selectedImagePaths.set(`${pack.id}::${session.id}`, new Set(session.images.map((image) => image.path)))
       imageCount += session.images.length
       imageBytesTotal += session.images.reduce((sum, image) => sum + image.size, 0)
     }
@@ -190,7 +193,7 @@ export const buildMergedArchive = async (
   if (imageCount) {
     const byPackage = new Map<string, Array<{ pack: ArchivePackage; session: ArchiveSession }>>()
     for (const item of chosen) {
-      if (!selectedImagePaths.has(`${item.pack.id}\0${item.session.id}`)) continue
+      if (!selectedImagePaths.has(`${item.pack.id}::${item.session.id}`)) { continue }
       const list = byPackage.get(item.pack.id) ?? []
       list.push(item)
       byPackage.set(item.pack.id, list)
@@ -214,7 +217,7 @@ export const buildMergedArchive = async (
           await skipEntry(entry)
         }
       }
-      if (wanted.size) fail('A selected image is missing from its ZIP package')
+      if (wanted.size) { fail('A selected image is missing from its ZIP package') }
     }
   }
 
@@ -231,7 +234,7 @@ export const buildMergedArchive = async (
 
 export const sanitizeArchiveName = (value: string, fallback: string): string => {
   const clean = (value || fallback)
-    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '')
+    .replace(/[\\/:*?"<>|]/g, '').replace(/\p{Cc}/gu, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 80)
