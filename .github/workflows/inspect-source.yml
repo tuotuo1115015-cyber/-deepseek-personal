@@ -7,7 +7,6 @@ on:
       - "deepseek-personal-v0.2.0-source.zip"
       - ".github/workflows/inspect-source.yml"
       - "patches/model-selector-position.patch"
-      - "patches/history-picker.patch"
       - "overlays/**"
   workflow_dispatch:
 
@@ -35,14 +34,6 @@ jobs:
           cd extracted/deepseek-personal-v0.2.0
           git apply ../../patches/model-selector-position.patch
           grep -n -A24 'className={styles.right}' src/components/chatInput/ChatInput.tsx
-
-      - name: Inspect settings insertion point
-        run: |
-          true
-
-      - name: Inspect existing ChatInput lint lines
-        run: |
-          true
 
       - name: Apply history picker patch and source overlays
         run: |
@@ -233,34 +224,6 @@ jobs:
           cp -R ../../overlays/. .
           test -f src/services/chat/history/mergeArchive.ts
           test -f src/components/settings/HistoryPickerDialog.tsx
-
-      - name: Package source files for implementation review
-        working-directory: extracted/deepseek-personal-v0.2.0
-        run: |
-          set -euo pipefail
-          mkdir -p ../../source-review
-          cp src/services/chat/backup.ts ../../source-review/
-          cp src/services/chat/history/README.md ../../source-review/
-          cp src/services/chat/history/{zipReader.ts,zipWriter.ts,format.ts,schema.ts,paths.ts,importArchive.ts,exportArchive.ts} ../../source-review/
-          cp src/components/settings/SettingsDialog.tsx ../../source-review/
-          cp src/components/chatInput/ChatInput.tsx ../../source-review/
-          cp src/components/settings/Settings.module.css ../../source-review/
-          cp src/components/base/{Modal.tsx,Modal.module.css,Button.tsx,Button.module.css,Select.tsx,Select.module.css} ../../source-review/
-          cp src/components/settings/settingsDialogState.ts ../../source-review/
-          cp src/i18n/index.ts ../../source-review/
-          cp src/services/chat/history/errors.ts ../../source-review/
-          cp src/services/chat/history/toArchive.ts ../../source-review/
-          cp src/i18n/{zh.ts,en.ts} ../../source-review/
-          cd ../..
-          zip -qr source-review.zip source-review
-
-      - name: Upload source review
-        uses: actions/upload-artifact@v4
-        with:
-          name: deepseek-personal-source-review
-          path: source-review.zip
-          if-no-files-found: error
-          retention-days: 7
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
