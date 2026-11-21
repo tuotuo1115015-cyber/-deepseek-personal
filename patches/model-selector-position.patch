@@ -1,0 +1,65 @@
+--- a/src/components/chatInput/ChatInput.tsx
++++ b/src/components/chatInput/ChatInput.tsx
+@@ -250,19 +250,6 @@
+       <div className={styles.functionRow}>
+         {/* 深度思考 / 智能搜索开关，tooltip 在按钮上方 */}
+         <div ref={togglesRef} className={styles.toggles}>
+-          {inputActive ? (
+-            <Select
+-              value={selectedModel}
+-              options={MODEL_OPTIONS}
+-              ariaLabel="Model"
+-              disabled={streaming || importingHistory}
+-              onChange={(model) => {
+-                setSelectedModel(model)
+-                saveSessionModel(sessionId, model)
+-                requestAnimationFrame(() => textareaRef.current?.focus({ preventScroll: true }))
+-              }}
+-            />
+-          ) : null}
+           <Tooltip content={t('deactivatedThinkTooltip')}>
+             <button
+               type="button"
+@@ -289,6 +276,27 @@
+           </Tooltip>
+         </div>
+         <div className={styles.right}>
++          <IconButton
++            size="m"
++            tone="primary"
++            icon={<IconPaperclipOutline16 />}
++            tooltip={t('uploadFile')}
++            disabled={importingHistory}
++            onClick={() => ensureApiKey() && fileInputRef.current?.click()}
++          />
++          {inputActive ? (
++            <Select
++              value={selectedModel}
++              options={MODEL_OPTIONS}
++              ariaLabel="Model"
++              disabled={streaming || importingHistory}
++              onChange={(model) => {
++                setSelectedModel(model)
++                saveSessionModel(sessionId, model)
++                requestAnimationFrame(() => textareaRef.current?.focus({ preventScroll: true }))
++              }}
++            />
++          ) : null}
+           <VoiceButton
+             status={voice.status}
+             disabled={!voice.available}
+@@ -302,14 +310,6 @@
+               }
+             }}
+           />
+-          <IconButton
+-            size="m"
+-            tone="primary"
+-            icon={<IconPaperclipOutline16 />}
+-            tooltip={t('uploadFile')}
+-            disabled={importingHistory}
+-            onClick={() => ensureApiKey() && fileInputRef.current?.click()}
+-          />
+           <input
+             ref={fileInputRef}
+             type="file"
