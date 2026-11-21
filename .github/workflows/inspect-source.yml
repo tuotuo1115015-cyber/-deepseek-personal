@@ -34,6 +34,27 @@ jobs:
           git apply ../../patches/model-selector-position.patch
           grep -n -A24 'className={styles.right}' src/components/chatInput/ChatInput.tsx
 
+      - name: Package source files for implementation review
+        working-directory: extracted/deepseek-personal-v0.2.0
+        run: |
+          set -euo pipefail
+          mkdir -p ../../source-review
+          cp src/services/chat/backup.ts ../../source-review/
+          cp src/services/chat/history/README.md ../../source-review/
+          cp src/services/chat/history/{zipReader.ts,zipWriter.ts,format.ts,schema.ts,paths.ts,importArchive.ts,exportArchive.ts} ../../source-review/
+          cp src/components/settings/SettingsDialog.tsx ../../source-review/
+          cp src/i18n/{zh.ts,en.ts} ../../source-review/
+          cd ../..
+          zip -qr source-review.zip source-review
+
+      - name: Upload source review
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepseek-personal-source-review
+          path: source-review.zip
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -53,6 +74,10 @@ jobs:
       - name: TypeScript check
         working-directory: extracted/deepseek-personal-v0.2.0
         run: pnpm type
+
+      - name: Lint check
+        working-directory: extracted/deepseek-personal-v0.2.0
+        run: pnpm lint
 
       - name: Production build
         working-directory: extracted/deepseek-personal-v0.2.0
