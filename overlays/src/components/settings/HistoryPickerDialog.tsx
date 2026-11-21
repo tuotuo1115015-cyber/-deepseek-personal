@@ -144,7 +144,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   }
 
   const addLocalHistory = async () => {
-    if (busy) { return }
+    if (busy || historyBusy) { return }
     setBusy(true)
     setStatus(t('historyPickerExportingLocal'))
     try {
@@ -239,7 +239,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
         ) : (
           <>
             <Button variant="outlined" size="m" disabled={busy} onClick={() => mergeInput.current?.click()}>{t('historyPickerAddZip')}</Button>
-            <Button variant="outlined" size="m" disabled={busy} onClick={() => void addLocalHistory()}>{t('historyPickerAddLocal')}</Button>
+            <Button variant="outlined" size="m" disabled={busy || historyBusy} onClick={() => void addLocalHistory()}>{t('historyPickerAddLocal')}</Button>
             <input ref={mergeInput} hidden type="file" multiple accept=".zip,application/zip" onChange={(event) => { const files = [...(event.target.files ?? [])]; event.target.value = ''; void loadFiles(files, true) }} />
           </>
         )}
@@ -290,7 +290,16 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
                   <div className={styles.duplicateRow} key={id}>
                     <div className={styles.duplicateTitle}>{group[0].session.title}</div>
                     <div className={styles.muted}>{group.map(({ pack, session }) => `${pack.name}: ${formatDate(session.updatedAt)} · ${formatSize(session.size)}${session === newest.session ? ` · ${t('historyPickerNewest')}` : ''}`).join('\n')}</div>
-                    <Select value={preferences[id] ?? 'newer'} options={options} onChange={(value) => { setPreferences((current) => ({ ...current, [id]: value })); setGenerated(null) }} ariaLabel={t('historyPickerDuplicateChoice')} />
+                    <Select value={preferences[id] ?? 'newer'} options={options} onChange={(value) => {
+                      setPreferences((current) => ({ ...current, [id]: value }))
+                      if (value !== 'newer') {
+                        const selectedPackage = group.find((item) => item.pack.id === value)
+                        if (selectedPackage) {
+                          setSelection((current) => ({ ...current, [keyOf(selectedPackage.pack.id, id)]: true }))
+                        }
+                      }
+                      setGenerated(null)
+                    }} ariaLabel={t('historyPickerDuplicateChoice')} />
                   </div>
                 )
               })}
