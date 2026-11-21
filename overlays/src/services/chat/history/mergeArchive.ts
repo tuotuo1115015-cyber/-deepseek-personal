@@ -96,12 +96,13 @@ export const readArchivePackage = async (file: File, id: string): Promise<Archiv
     throw error
   }
 
-  if (!manifestSeen || !index) fail('Missing manifest or session index')
-  const indexIds = new Set(index.map((item) => item.id))
-  if (indexIds.size !== index.length || index.length !== sessions.size) fail('Index does not match sessions')
+  const finalIndex = index
+  if (!manifestSeen || finalIndex === null) fail('Missing manifest or session index')
+  const indexIds = new Set(finalIndex.map((item) => item.id))
+  if (indexIds.size !== finalIndex.length || finalIndex.length !== sessions.size) fail('Index does not match sessions')
   for (const sessionId of sessions.keys()) if (!indexIds.has(sessionId)) fail('Session missing from index')
 
-  const byId = new Map(index.map((item) => [item.id, item]))
+  const byId = new Map(finalIndex.map((item) => [item.id, item]))
   const result: ArchiveSession[] = [...sessions.entries()].map(([sessionId, item]) => {
     const meta = byId.get(sessionId)!
     return {
@@ -193,7 +194,7 @@ export const buildMergedArchive = async (
       list.push(item)
       byPackage.set(item.pack.id, list)
     }
-    for (const [packageId, items] of byPackage) {
+    for (const items of byPackage.values()) {
       const pack = items[0].pack
       const wanted = new Set(items.flatMap(({ session }) => session.images.map((image) => image.path)))
       for await (const entry of readArchive(pack.file)) {
