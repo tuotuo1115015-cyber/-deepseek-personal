@@ -38,7 +38,7 @@ jobs:
 
       - name: Inspect settings insertion point
         run: |
-          sed -n '1,155p' extracted/deepseek-personal-v0.2.0/src/components/settings/SettingsDialog.tsx
+          true
 
       - name: Apply history picker patch and source overlays
         run: |
@@ -49,8 +49,32 @@ jobs:
           from pathlib import Path
           path = Path("src/components/settings/SettingsDialog.tsx")
           source = path.read_text()
-          needle = "      </Modal>\\n      {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}\\n"
-          insert = """      </Modal>
+          replacements = [
+              ("import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\\n",
+               "import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\\nimport { HistoryPickerDialog } from './HistoryPickerDialog.js'\\n"),
+              ("  const historyDelete = useHistoryDelete()\\n",
+               "  const historyDelete = useHistoryDelete()\\n  const [historyPickerOpen, setHistoryPickerOpen] = useState(false)\\n"),
+              ("              <ApiKeyField editor={apiKeyEditor} />\\n",
+               """              <ApiKeyField editor={apiKeyEditor} />
+                <SettingCell
+                  label={t('historyPickerSettingLabel')}
+                  description={t('historyPickerSettingDescription')}
+                  status={null}
+                  action={
+                    <Button
+                      variant="outlined"
+                      size="m"
+                      className={styles.cellButton}
+                      disabled={historyBusy}
+                      onClick={() => setHistoryPickerOpen(true)}
+                    >
+                      {t('historyPickerOpen')}
+                    </Button>
+                  }
+                />
+          """),
+              ("      </Modal>\\n      {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}\\n",
+               """      </Modal>
                 <HistoryPickerDialog
                   open={historyPickerOpen}
                   historyBusy={historyBusy}
@@ -61,10 +85,13 @@ jobs:
                   }}
                 />
                 {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}
-          """
-          if needle not in source:
-              raise SystemExit("Could not locate SettingsDialog modal insertion point")
-          path.write_text(source.replace(needle, insert, 1))
+          """),
+          ]
+          for old, new in replacements:
+              if old not in source:
+                  raise SystemExit("SettingsDialog insertion point not found: " + old[:55])
+              source = source.replace(old, new, 1)
+          path.write_text(source)
           PY
           cp -R ../../overlays/. .
           test -f src/services/chat/history/mergeArchive.ts
