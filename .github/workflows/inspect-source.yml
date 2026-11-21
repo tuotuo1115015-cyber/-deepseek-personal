@@ -284,15 +284,7 @@ jobs:
 
       - name: Lint check
         working-directory: extracted/deepseek-personal-v0.2.0
-        run: pnpm exec oxlint src rspack.config.ts --format json > ../../lint-all.json || true
-
-      - name: Upload full lint diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: full-lint-diagnostics
-          path: lint-all.json
-          if-no-files-found: error
-          retention-days: 7
+        run: pnpm lint
 
       - name: Production build
         working-directory: extracted/deepseek-personal-v0.2.0
