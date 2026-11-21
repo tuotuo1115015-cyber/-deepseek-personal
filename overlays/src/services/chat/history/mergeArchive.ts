@@ -221,10 +221,8 @@ export const buildMergedArchive = async (
     name: INDEX_PATH,
     blob: new Blob([JSON.stringify(index)], { type: 'application/json' }),
   })
-  const blob = await writeArchive(entries, (written, total) => {
-    const percent = total ? 66 + Math.round((written / total) * 34) : 99
-    onProgress({ stage: 'packing', percent: Math.min(99, percent), detail: \`\${written} / \${total}\` })
-  })
+  onProgress({ stage: 'packing', percent: 85, detail: String(entries.length) })
+  const blob = await writeArchive(entries)
   onProgress({ stage: 'done', percent: 100, detail: String(blob.size) })
   return blob
 }
