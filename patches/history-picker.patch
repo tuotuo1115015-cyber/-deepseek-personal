@@ -1,0 +1,228 @@
+--- a/src/components/settings/SettingsDialog.tsx
++++ b/src/components/settings/SettingsDialog.tsx
+@@ -33,6 +33,7 @@
+ import { Select } from '../base/Select.js'
+ import { showToast } from '../base/toastState.js'
+ import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'
++import { HistoryPickerDialog } from './HistoryPickerDialog.js'
+ import { closeSettings, useSettingsDialog, type SettingsSection } from './settingsDialogState.js'
+ import styles from './Settings.module.css'
+ 
+@@ -63,6 +64,7 @@
+   const apiKeyEditor = useApiKeyEditor()
+   const historyImport = useHistoryImport()
+   const historyDelete = useHistoryDelete()
++  const [historyPickerOpen, setHistoryPickerOpen] = useState(false)
+   const replacingHistory = useChatStore((state) => state.importingHistory)
+   const historyBusy = historyImport.busy || historyDelete.busy || replacingHistory
+   return (
+@@ -104,6 +106,22 @@
+           ) : (
+             <>
+               <ApiKeyField editor={apiKeyEditor} />
++              <SettingCell
++                label={t('historyPickerSettingLabel')}
++                description={t('historyPickerSettingDescription')}
++                status={null}
++                action={
++                  <Button
++                    variant="outlined"
++                    size="m"
++                    className={styles.cellButton}
++                    disabled={historyBusy}
++                    onClick={() => setHistoryPickerOpen(true)}
++                  >
++                    {t('historyPickerOpen')}
++                  </Button>
++                }
++              />
+               <ImportHistory historyImport={historyImport} disabled={historyBusy} />
+               <ExportHistory disabled={historyBusy} />
+               <SettingCell
+@@ -128,6 +146,15 @@
+       </Modal>
+       {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}
+       {historyDelete.opened ? <DeleteAllConfirm historyDelete={historyDelete} /> : null}
++      <HistoryPickerDialog
++        open={historyPickerOpen}
++        historyBusy={historyBusy}
++        onClose={() => setHistoryPickerOpen(false)}
++        onReplace={(file) => {
++          setHistoryPickerOpen(false)
++          historyImport.select(file)
++        }}
++      />
+     </>
+   )
+ }
+--- a/src/i18n/zh.ts
++++ b/src/i18n/zh.ts
+@@ -105,6 +105,54 @@
+   confirm: '确定',
+   apiKeyInvalid: 'API Key 无效，请检查后重试',
+   apiKeyVerificationFailed: '校验失败：{message}',
++  historyPickerSettingLabel: '对话挑选与合并',
++  historyPickerSettingDescription: '从历史 ZIP 中挑选、比较并合并对话，或将结果替换本地历史。',
++  historyPickerOpen: '打开工具',
++  historyPickerTitle: '对话挑选与合并',
++  historyPickerIntro: '在本机处理 ZIP 文件。生成的文件可通过现有导入功能恢复。',
++  historyPickerPickTab: '选取',
++  historyPickerMergeTab: '合并',
++  historyPickerChooseZip: '选择 ZIP',
++  historyPickerAddCompareZip: '添加对比 ZIP',
++  historyPickerAddZip: '添加 ZIP',
++  historyPickerAddLocal: '添加本地历史',
++  historyPickerReading: '正在读取 ZIP…',
++  historyPickerLoaded: '已载入 {packages} 个包，共 {sessions} 个对话。',
++  historyPickerReadFailed: '读取失败',
++  historyPickerExportingLocal: '正在导出本地历史…',
++  historyPickerLocalAdded: '已添加本地历史，共 {count} 个对话。',
++  historyPickerPickHint: '先选择一个 ZIP。可再添加另一个 ZIP 比较重复对话。重新选择会替换当前已载入的包。',
++  historyPickerMergeHint: '添加至少两个 ZIP，或将本地历史作为一个来源包加入。',
++  historyPickerSearch: '按对话标题搜索',
++  historyPickerSelectAll: '全选',
++  historyPickerSelectNone: '全不选',
++  historyPickerInvert: '反选',
++  historyPickerSelectedCount: '已勾选 {selected} 项 / {total} 项，去重后 {unique} 个对话',
++  historyPickerPackageCount: '{count} 个对话 · 已选 {selected}',
++  historyPickerSelectPackage: '全选本包',
++  historyPickerClearPackage: '清空本包',
++  historyPickerRemovePackage: '移除',
++  historyPickerImageCount: '{count} 张图片',
++  historyPickerDuplicateMark: '另一包也有',
++  historyPickerPreviewTruncated: '…（仅预览前 30000 字符）',
++  historyPickerPreviewFailed: '预览读取失败',
++  historyPickerPreviewLoading: '正在读取预览…',
++  historyPickerDuplicates: '重复对话对比（{count}）',
++  historyPickerDuplicateHint: '同一对话 ID 出现在多个包中。若重复项都被勾选，默认保留更新时间较新的版本。',
++  historyPickerUseNewer: '取更新的（默认）',
++  historyPickerUsePackage: '使用 {name}',
++  historyPickerNewest: '更新',
++  historyPickerDuplicateChoice: '重复对话版本',
++  historyPickerFilename: '文件名（留空自动命名）',
++  historyPickerAutoName: '自动命名',
++  historyPickerOmitImages: '不带图片原件（对话文字不受影响）',
++  historyPickerBuild: '生成 ZIP',
++  historyPickerBuilding: '正在生成…',
++  historyPickerNeedTwoPackages: '合并至少需要 2 个包，请再添加一个 ZIP。',
++  historyPickerProgressConversations: '复制对话',
++  historyPickerProgressImages: '复制图片',
++  historyPickerProgressIndex: '重建索引',
++  historyPickerProgressPacking: '打包 ZIP',
++  historyPickerProgressDone: '完成',
++  historyPickerGenerated: '已生成 ZIP，大小 {size}。',
++  historyPickerBuildFailed: '生成失败',
++  historyPickerReplaceWarning: '直接替换会覆盖本地全部对话。想保留的本地对话需已勾选。',
++  historyPickerDownload: '下载 ZIP',
++  historyPickerReplaceLocal: '直接替换本地',
+   historyImport: '导入历史对话',
+--- a/src/i18n/en.ts
++++ b/src/i18n/en.ts
+@@ -110,6 +110,54 @@
+   confirm: 'Confirm',
+   apiKeyInvalid: 'Invalid API Key. Please check it and try again.',
+   apiKeyVerificationFailed: 'Verification failed: {message}',
++  historyPickerSettingLabel: 'Pick and merge chats',
++  historyPickerSettingDescription: 'Select, compare, and merge chats from history ZIP files, or replace local history with the result.',
++  historyPickerOpen: 'Open tool',
++  historyPickerTitle: 'Pick and merge chats',
++  historyPickerIntro: 'ZIP files are processed locally. The generated file can be restored with the existing import flow.',
++  historyPickerPickTab: 'Pick',
++  historyPickerMergeTab: 'Merge',
++  historyPickerChooseZip: 'Choose ZIP',
++  historyPickerAddCompareZip: 'Add comparison ZIP',
++  historyPickerAddZip: 'Add ZIP',
++  historyPickerAddLocal: 'Add local history',
++  historyPickerReading: 'Reading ZIP…',
++  historyPickerLoaded: 'Loaded {packages} packages and {sessions} chats.',
++  historyPickerReadFailed: 'Failed to read ZIP',
++  historyPickerExportingLocal: 'Exporting local history…',
++  historyPickerLocalAdded: 'Added local history with {count} chats.',
++  historyPickerPickHint: 'Choose one ZIP first. Add another ZIP to compare duplicate chats. Choosing a new ZIP replaces the currently loaded package.',
++  historyPickerMergeHint: 'Add at least two ZIP files, or add local history as a source package.',
++  historyPickerSearch: 'Search chat titles',
++  historyPickerSelectAll: 'Select all',
++  historyPickerSelectNone: 'Select none',
++  historyPickerInvert: 'Invert',
++  historyPickerSelectedCount: '{selected} of {total} checked, {unique} unique chats',
++  historyPickerPackageCount: '{count} chats · {selected} selected',
++  historyPickerSelectPackage: 'Select package',
++  historyPickerClearPackage: 'Clear package',
++  historyPickerRemovePackage: 'Remove',
++  historyPickerImageCount: '{count} images',
++  historyPickerDuplicateMark: 'Also in another package',
++  historyPickerPreviewTruncated: '… (preview limited to the first 30,000 characters)',
++  historyPickerPreviewFailed: 'Could not load preview',
++  historyPickerPreviewLoading: 'Loading preview…',
++  historyPickerDuplicates: 'Duplicate chat comparison ({count})',
++  historyPickerDuplicateHint: 'The same chat ID appears in multiple packages. If duplicate entries are both selected, the newest version is kept by default.',
++  historyPickerUseNewer: 'Use newest (default)',
++  historyPickerUsePackage: 'Use {name}',
++  historyPickerNewest: 'Newest',
++  historyPickerDuplicateChoice: 'Duplicate chat version',
++  historyPickerFilename: 'File name (leave blank for automatic naming)',
++  historyPickerAutoName: 'Automatic name',
++  historyPickerOmitImages: 'Omit original images (chat text is unchanged)',
++  historyPickerBuild: 'Generate ZIP',
++  historyPickerBuilding: 'Generating…',
++  historyPickerNeedTwoPackages: 'Merging requires at least two packages. Add another ZIP.',
++  historyPickerProgressConversations: 'Copying chats',
++  historyPickerProgressImages: 'Copying images',
++  historyPickerProgressIndex: 'Rebuilding index',
++  historyPickerProgressPacking: 'Packing ZIP',
++  historyPickerProgressDone: 'Done',
++  historyPickerGenerated: 'ZIP generated ({size}).',
++  historyPickerBuildFailed: 'Failed to generate ZIP',
++  historyPickerReplaceWarning: 'Replacing local history overwrites all local chats. Select every local chat you want to keep.',
++  historyPickerDownload: 'Download ZIP',
++  historyPickerReplaceLocal: 'Replace local history',
+   historyImport: 'Import chat history',
+--- a/src/services/chat/history/zipReader.ts
++++ b/src/services/chat/history/zipReader.ts
+@@ -299,10 +299,16 @@
+ }
+ 
+ /** 读出整个条目：会话 JSON 需要完整解析，图片需要识别类型后整张保存。 */
+-export const readEntry = async (entry: ArchiveEntry): Promise<Blob> => {
++export const readEntry = async (
++  entry: ArchiveEntry,
++  onChunk?: (read: number, total: number) => void
++): Promise<Blob> => {
+   const parts: Blob[] = []
++  let read = 0
+   for await (const chunk of entry.stream) {
+     parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))
++    read += chunk.byteLength
++    onChunk?.(read, entry.size)
+   }
+   return new Blob(parts)
+ }
+--- a/src/services/chat/history/zipWriter.ts
++++ b/src/services/chat/history/zipWriter.ts
+@@ -39,7 +39,10 @@
+ }
+ 
+ /** STORE 流式写入；成品必须能再次导入。 */
+-export const writeArchive = async (entries: { name: string; blob: Blob }[]): Promise<Blob> => {
++export const writeArchive = async (
++  entries: { name: string; blob: Blob }[],
++  onProgress?: (written: number, total: number) => void
++): Promise<Blob> => {
+@@ -64,8 +67,10 @@
+   })
+ 
+   const expectedSize = dataSize + directorySize + 22
++  const totalBytes = prepared.reduce((total, entry) => total + entry.blob.size, 0)
+   const chunks: Blob[] = []
+   let size = 0
++  let writtenBytes = 0
+   let completed = false
+@@ -92,6 +97,8 @@
+             break
+           }
+           written += value.byteLength
++          writtenBytes += value.byteLength
++          onProgress?.(writtenBytes, totalBytes)
+           if (written > blob.size) {
+             invalid()
+           }
