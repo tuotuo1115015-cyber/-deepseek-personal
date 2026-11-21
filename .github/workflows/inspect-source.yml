@@ -226,6 +226,7 @@ jobs:
           cp src/services/chat/history/README.md ../../source-review/
           cp src/services/chat/history/{zipReader.ts,zipWriter.ts,format.ts,schema.ts,paths.ts,importArchive.ts,exportArchive.ts} ../../source-review/
           cp src/components/settings/SettingsDialog.tsx ../../source-review/
+          cp src/components/chatInput/ChatInput.tsx ../../source-review/
           cp src/components/settings/Settings.module.css ../../source-review/
           cp src/components/base/{Modal.tsx,Modal.module.css,Button.tsx,Button.module.css,Select.tsx,Select.module.css} ../../source-review/
           cp src/components/settings/settingsDialogState.ts ../../source-review/
