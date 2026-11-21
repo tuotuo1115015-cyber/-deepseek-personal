@@ -38,7 +38,7 @@ jobs:
 
       - name: Inspect settings insertion point
         run: |
-          sed -n '120,140p' extracted/deepseek-personal-v0.2.0/src/components/settings/SettingsDialog.tsx
+          sed -n '1,155p' extracted/deepseek-personal-v0.2.0/src/components/settings/SettingsDialog.tsx
 
       - name: Apply history picker patch and source overlays
         run: |
