@@ -36,6 +36,10 @@ jobs:
           git apply ../../patches/model-selector-position.patch
           grep -n -A24 'className={styles.right}' src/components/chatInput/ChatInput.tsx
 
+      - name: Inspect settings insertion point
+        run: |
+          sed -n '120,140p' extracted/deepseek-personal-v0.2.0/src/components/settings/SettingsDialog.tsx
+
       - name: Apply history picker patch and source overlays
         run: |
           set -euo pipefail
