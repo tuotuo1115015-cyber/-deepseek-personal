@@ -85,7 +85,7 @@
      titleRequests.add(controller)
    }
    set((state) => ({ streaming: { ...state.streaming, [sessionId]: controller } }))
-@@ -1028,7 +1031,9 @@
+@@ -1028,7 +1031,7 @@
              messages,
              thinking: { type: initial.thinking ? 'enabled' : 'disabled' },
              safety_check: SAFETY_CHECK,
