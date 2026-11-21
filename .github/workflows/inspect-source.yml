@@ -209,41 +209,65 @@ jobs:
           replace_once(Path("src/i18n/en.ts"), "  historyImport: 'Import chat history',\n", en_keys + "  historyImport: 'Import chat history',\n")
 
           reader = Path("src/services/chat/history/zipReader.ts")
-          replace_once(reader,
-              """export const readEntry = async (entry: ArchiveEntry): Promise<Blob> => {
-                const parts: Blob[] = []
-                for await (const chunk of entry.stream) {
-                  parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))
-                }
-                return new Blob(parts)
-              }""",
-              """export const readEntry = async (
-                entry: ArchiveEntry,
-                onChunk?: (read: number, total: number) => void
-              ): Promise<Blob> => {
-                const parts: Blob[] = []
-                let read = 0
-                for await (const chunk of entry.stream) {
-                  parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))
-                  read += chunk.byteLength
-                  onChunk?.(read, entry.size)
-                }
-                return new Blob(parts)
-              }""")
+          old_reader = "\\n".join([
+              "export const readEntry = async (entry: ArchiveEntry): Promise<Blob> => {",
+              "  const parts: Blob[] = []",
+              "  for await (const chunk of entry.stream) {",
+              "    parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))",
+              "  }",
+              "  return new Blob(parts)",
+              "}",
+          ])
+          new_reader = "\\n".join([
+              "export const readEntry = async (",
+              "  entry: ArchiveEntry,",
+              "  onChunk?: (read: number, total: number) => void",
+              "): Promise<Blob> => {",
+              "  const parts: Blob[] = []",
+              "  let read = 0",
+              "  for await (const chunk of entry.stream) {",
+              "    parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))",
+              "    read += chunk.byteLength",
+              "    onChunk?.(read, entry.size)",
+              "  }",
+              "  return new Blob(parts)",
+              "}",
+          ])
+          replace_once(reader, old_reader, new_reader)
 
           writer = Path("src/services/chat/history/zipWriter.ts")
           replace_once(writer,
               "export const writeArchive = async (entries: { name: string; blob: Blob }[]): Promise<Blob> => {",
-              """export const writeArchive = async (
-                entries: { name: string; blob: Blob }[],
-                onProgress?: (written: number, total: number) => void
-              ): Promise<Blob> => {""")
+              "\\n".join([
+                  "export const writeArchive = async (",
+                  "  entries: { name: string; blob: Blob }[],",
+                  "  onProgress?: (written: number, total: number) => void",
+                  "): Promise<Blob> => {",
+              ]))
           replace_once(writer,
-              "  const expectedSize = dataSize + directorySize + 22\n  const chunks: Blob[] = []\n  let size = 0\n",
-              "  const expectedSize = dataSize + directorySize + 22\n  const totalBytes = prepared.reduce((total, entry) => total + entry.blob.size, 0)\n  const chunks: Blob[] = []\n  let size = 0\n  let writtenBytes = 0\n")
+              "\\n".join([
+                  "  const expectedSize = dataSize + directorySize + 22",
+                  "  const chunks: Blob[] = []",
+                  "  let size = 0",
+              ]),
+              "\\n".join([
+                  "  const expectedSize = dataSize + directorySize + 22",
+                  "  const totalBytes = prepared.reduce((total, entry) => total + entry.blob.size, 0)",
+                  "  const chunks: Blob[] = []",
+                  "  let size = 0",
+                  "  let writtenBytes = 0",
+              ]))
           replace_once(writer,
-              "          written += value.byteLength\n          if (written > blob.size) {",
-              "          written += value.byteLength\n          writtenBytes += value.byteLength\n          onProgress?.(writtenBytes, totalBytes)\n          if (written > blob.size) {")
+              "\\n".join([
+                  "          written += value.byteLength",
+                  "          if (written > blob.size) {",
+              ]),
+              "\\n".join([
+                  "          written += value.byteLength",
+                  "          writtenBytes += value.byteLength",
+                  "          onProgress?.(writtenBytes, totalBytes)",
+                  "          if (written > blob.size) {",
+              ]))
           PY
           cp -R ../../overlays/. .
           test -f src/services/chat/history/mergeArchive.ts
