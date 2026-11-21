@@ -57,7 +57,7 @@
  }
 --- a/src/i18n/zh.ts
 +++ b/src/i18n/zh.ts
-@@ -105,6 +105,54 @@
+@@ -105,6 +105,60 @@
    confirm: '确定',
    apiKeyInvalid: 'API Key 无效，请检查后重试',
    apiKeyVerificationFailed: '校验失败：{message}',
@@ -118,7 +118,7 @@
    historyImport: '导入历史对话',
 --- a/src/i18n/en.ts
 +++ b/src/i18n/en.ts
-@@ -110,6 +110,54 @@
+@@ -110,6 +110,60 @@
    confirm: 'Confirm',
    apiKeyInvalid: 'Invalid API Key. Please check it and try again.',
    apiKeyVerificationFailed: 'Verification failed: {message}',
