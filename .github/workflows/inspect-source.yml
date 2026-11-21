@@ -45,6 +45,27 @@ jobs:
           set -euo pipefail
           cd extracted/deepseek-personal-v0.2.0
           git apply --recount ../../patches/history-picker.patch
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("src/components/settings/SettingsDialog.tsx")
+          source = path.read_text()
+          needle = "      </Modal>\\n      {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}\\n"
+          insert = """      </Modal>
+                <HistoryPickerDialog
+                  open={historyPickerOpen}
+                  historyBusy={historyBusy}
+                  onClose={() => setHistoryPickerOpen(false)}
+                  onReplace={(file) => {
+                    setHistoryPickerOpen(false)
+                    historyImport.select(file)
+                  }}
+                />
+                {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}
+          """
+          if needle not in source:
+              raise SystemExit("Could not locate SettingsDialog modal insertion point")
+          path.write_text(source.replace(needle, insert, 1))
+          PY
           cp -R ../../overlays/. .
           test -f src/services/chat/history/mergeArchive.ts
           test -f src/components/settings/HistoryPickerDialog.tsx
