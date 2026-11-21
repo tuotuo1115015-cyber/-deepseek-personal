@@ -42,7 +42,7 @@ jobs:
 
       - name: Inspect existing ChatInput lint lines
         run: |
-          sed -n '35,62p;175,228p' extracted/deepseek-personal-v0.2.0/src/components/chatInput/ChatInput.tsx
+          true
 
       - name: Apply history picker patch and source overlays
         run: |
@@ -98,6 +98,23 @@ jobs:
                 />
                 {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}
           """)
+
+          chat_input = Path("src/components/chatInput/ChatInput.tsx")
+          replace_once(chat_input,
+              "if (saved === 'deepseek-flash' || saved === 'deepseek-v4-pro') return saved",
+              "if (saved === 'deepseek-flash' || saved === 'deepseek-v4-pro') { return saved }")
+          replace_once(chat_input,
+              "if (previous?.role === 'assistant' && previous.model) return previous.model",
+              "if (previous?.role === 'assistant' && previous.model) { return previous.model }")
+          replace_once(chat_input,
+              "if (createdSessionId) saveSessionModel(createdSessionId, selectedModel)",
+              "if (createdSessionId) { saveSessionModel(createdSessionId, selectedModel) }")
+          replace_once(chat_input,
+              "if (blurTimerRef.current) clearTimeout(blurTimerRef.current)",
+              "if (blurTimerRef.current) { clearTimeout(blurTimerRef.current) }")
+          replace_once(chat_input,
+              "if (!wrapper?.contains(document.activeElement)) setInputActive(false)",
+              "if (!wrapper?.contains(document.activeElement)) { setInputActive(false) }")
 
           zh_keys = """  historyPickerSettingLabel: '对话挑选与合并',
             historyPickerSettingDescription: '从历史 ZIP 中挑选、比较并合并对话，或将结果替换本地历史。',
