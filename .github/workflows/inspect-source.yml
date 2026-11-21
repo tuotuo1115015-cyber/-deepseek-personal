@@ -208,39 +208,6 @@ jobs:
           replace_once(Path("src/i18n/zh.ts"), "  historyImport: '导入历史对话',\n", zh_keys + "  historyImport: '导入历史对话',\n")
           replace_once(Path("src/i18n/en.ts"), "  historyImport: 'Import chat history',\n", en_keys + "  historyImport: 'Import chat history',\n")
 
-          writer = Path("src/services/chat/history/zipWriter.ts")
-          replace_once(writer,
-              "export const writeArchive = async (entries: { name: string; blob: Blob }[]): Promise<Blob> => {",
-              "\\n".join([
-                  "export const writeArchive = async (",
-                  "  entries: { name: string; blob: Blob }[],",
-                  "  onProgress?: (written: number, total: number) => void",
-                  "): Promise<Blob> => {",
-              ]))
-          replace_once(writer,
-              "\\n".join([
-                  "  const expectedSize = dataSize + directorySize + 22",
-                  "  const chunks: Blob[] = []",
-                  "  let size = 0",
-              ]),
-              "\\n".join([
-                  "  const expectedSize = dataSize + directorySize + 22",
-                  "  const totalBytes = prepared.reduce((total, entry) => total + entry.blob.size, 0)",
-                  "  const chunks: Blob[] = []",
-                  "  let size = 0",
-                  "  let writtenBytes = 0",
-              ]))
-          replace_once(writer,
-              "\\n".join([
-                  "          written += value.byteLength",
-                  "          if (written > blob.size) {",
-              ]),
-              "\\n".join([
-                  "          written += value.byteLength",
-                  "          writtenBytes += value.byteLength",
-                  "          onProgress?.(writtenBytes, totalBytes)",
-                  "          if (written > blob.size) {",
-              ]))
           PY
           cp -R ../../overlays/. .
           test -f src/services/chat/history/mergeArchive.ts
