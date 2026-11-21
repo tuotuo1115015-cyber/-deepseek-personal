@@ -7,6 +7,8 @@ on:
       - "deepseek-personal-v0.2.0-source.zip"
       - ".github/workflows/inspect-source.yml"
       - "patches/model-selector-position.patch"
+      - "patches/history-picker.patch"
+      - "overlays/**"
   workflow_dispatch:
 
 permissions:
@@ -33,6 +35,15 @@ jobs:
           cd extracted/deepseek-personal-v0.2.0
           git apply ../../patches/model-selector-position.patch
           grep -n -A24 'className={styles.right}' src/components/chatInput/ChatInput.tsx
+
+      - name: Apply history picker patch and source overlays
+        run: |
+          set -euo pipefail
+          cd extracted/deepseek-personal-v0.2.0
+          git apply ../../patches/history-picker.patch
+          cp -R ../../overlays/. .
+          test -f src/services/chat/history/mergeArchive.ts
+          test -f src/components/settings/HistoryPickerDialog.tsx
 
       - name: Package source files for implementation review
         working-directory: extracted/deepseek-personal-v0.2.0
