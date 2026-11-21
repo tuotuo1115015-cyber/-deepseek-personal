@@ -1,0 +1,59 @@
+.dialog {
+  width: min(920px, calc(100vw - 28px));
+  max-height: min(90vh, 900px);
+  padding: 20px 22px;
+}
+.main { min-height: 0; overflow: auto; color: var(--dsw-alias-label-secondary); }
+.intro, .status, .muted { color: var(--dsw-alias-label-tertiary); font-size: 12px; line-height: 18px; white-space: pre-wrap; }
+.tabs { display: flex; margin: 14px 0 10px; padding: 3px; border-radius: 12px; background: var(--dsw-specific-selector); }
+.tabs button {
+  flex: 1; min-height: 34px; border: 0; border-radius: 9px; background: transparent;
+  color: var(--dsw-alias-label-secondary); font: inherit; cursor: pointer;
+}
+.tabs .activeTab { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.toolbar, .selectionBar, .packageActions, .resultActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.toolbar { margin: 10px 0 6px; }
+.status { min-height: 20px; margin: 6px 0 10px; }
+.search {
+  box-sizing: border-box; width: 100%; min-width: 0; height: 38px; padding: 0 12px;
+  border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; outline: none;
+  background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); font: inherit;
+}
+.search:focus { border-color: var(--dsw-alias-brand-primary); }
+.selectionBar { margin: 10px 0; }
+.selectionBar > span { margin-left: auto; color: var(--dsw-alias-label-tertiary); font-size: 12px; }
+.list { max-height: 36vh; min-height: 100px; overflow: auto; padding-right: 3px; }
+.package { margin: 8px 0; padding: 9px 11px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 12px; }
+.package > summary { color: var(--dsw-alias-label-primary); font-size: 13px; font-weight: 600; cursor: pointer; overflow-wrap: anywhere; }
+.packageCount { margin-left: 8px; color: var(--dsw-alias-label-tertiary); font-size: 11px; font-weight: 400; }
+.packageActions { margin: 8px 0; }
+.sessionRow { display: flex; align-items: flex-start; gap: 9px; padding: 9px 0; border-top: 1px solid var(--dsw-alias-border-l2); }
+.checkbox { flex: 0 0 auto; width: 16px; height: 16px; margin: 4px 0 0; accent-color: var(--dsw-alias-brand-primary); }
+.sessionDetails { flex: 1; min-width: 0; }
+.sessionSummary { cursor: pointer; overflow-wrap: anywhere; }
+.sessionTitle { display: block; color: var(--dsw-alias-label-primary); font-size: 13px; }
+.sessionMeta { display: block; margin-top: 2px; color: var(--dsw-alias-label-tertiary); font-size: 11px; }
+.packageName { max-width: 110px; overflow: hidden; color: var(--dsw-alias-label-caption); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.preview {
+  max-height: 220px; overflow: auto; margin: 8px 0 0; padding: 10px; border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-secondary);
+  font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.duplicates, .output { margin-top: 14px; padding: 12px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 12px; }
+.sectionTitle { margin-bottom: 4px; color: var(--dsw-alias-label-primary); font-size: 13px; font-weight: 600; }
+.duplicateRow { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 0; border-top: 1px solid var(--dsw-alias-border-l2); }
+.duplicateTitle { color: var(--dsw-alias-label-primary); font-size: 13px; font-weight: 500; }
+.fieldLabel { display: block; margin-bottom: 6px; color: var(--dsw-alias-label-secondary); font-size: 12px; }
+.checkboxLabel { display: flex; align-items: center; gap: 8px; margin: 10px 0 12px; color: var(--dsw-alias-label-secondary); font-size: 12px; }
+.checkboxLabel input { accent-color: var(--dsw-alias-brand-primary); }
+.progressTrack { height: 10px; margin-top: 12px; overflow: hidden; border: 1px solid #c6c7ce; border-radius: 10px; background: var(--dsw-alias-bg-layer-2); }
+.progressFill { height: 100%; border-radius: inherit; background: #e0e1e6; transition: width 120ms linear; }
+.progressLabel { margin: 5px 0 8px; color: var(--dsw-alias-label-secondary); font-size: 11px; }
+.output > .muted { margin-top: 10px; }
+.resultActions { margin-top: 12px; }
+@media (max-width: 640px) {
+  .dialog { width: calc(100vw - 16px); max-width: none; max-height: 92vh; padding: 16px 14px; border-radius: 20px; }
+  .list { max-height: 34vh; }
+  .packageName { display: none; }
+  .selectionBar > span { width: 100%; margin-left: 0; }
+}
