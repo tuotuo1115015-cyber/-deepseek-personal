@@ -40,6 +40,10 @@ jobs:
         run: |
           true
 
+      - name: Inspect existing ChatInput lint lines
+        run: |
+          sed -n '35,62p;175,228p' extracted/deepseek-personal-v0.2.0/src/components/chatInput/ChatInput.tsx
+
       - name: Apply history picker patch and source overlays
         run: |
           set -euo pipefail
