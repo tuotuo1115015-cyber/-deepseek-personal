@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           cd extracted/deepseek-personal-v0.2.0
-          git apply ../../patches/history-picker.patch
+          git apply --recount ../../patches/history-picker.patch
           cp -R ../../overlays/. .
           test -f src/services/chat/history/mergeArchive.ts
           test -f src/components/settings/HistoryPickerDialog.tsx
