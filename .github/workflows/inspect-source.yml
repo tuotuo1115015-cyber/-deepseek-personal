@@ -12,11 +12,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Inspect source archive
+      - name: Extract source archive
         run: |
           set -euo pipefail
           test -f deepseek-personal-v0.2.0-source.zip
-          echo "=== ZIP archive listing ==="
-          unzip -l deepseek-personal-v0.2.0-source.zip
-          echo "=== Root entries ==="
-          unzip -Z1 deepseek-personal-v0.2.0-source.zip | sed -n '1,100p'
+          mkdir extracted-source
+          unzip -q deepseek-personal-v0.2.0-source.zip -d extracted-source
+          echo "=== Extracted project files ==="
+          find extracted-source -maxdepth 4 -type f | sort | sed -n '1,200p'
+      - name: Upload extracted source
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepseek-personal-source-extracted
+          path: extracted-source/
+          if-no-files-found: error
+          retention-days: 3
