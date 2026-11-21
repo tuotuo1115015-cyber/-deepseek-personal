@@ -1,6 +1,11 @@
 name: Inspect and Build DeepSeek Personal
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "deepseek-personal-v0.2.0-source.zip"
+      - ".github/workflows/inspect-source.yml"
   workflow_dispatch:
 
 permissions:
