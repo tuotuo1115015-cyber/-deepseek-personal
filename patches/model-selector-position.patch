@@ -90,9 +90,7 @@
              thinking: { type: initial.thinking ? 'enabled' : 'disabled' },
              safety_check: SAFETY_CHECK,
 -            tools: serverTools(initial.search ?? false),
-+            ...(supportsServerTools(initial.model)
-+              ? { tools: serverTools(initial.search ?? false) }
-+              : {}),
++            tools: supportsServerTools(initial.model) ? serverTools(initial.search ?? false) : [],
              ...(titleRequests.has(controller) ? { title: { enabled: true } } : {}),
            },
            controller.signal
