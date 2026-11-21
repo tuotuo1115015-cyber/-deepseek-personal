@@ -50,11 +50,11 @@ jobs:
           path = Path("src/components/settings/SettingsDialog.tsx")
           source = path.read_text()
           replacements = [
-              ("import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\\n",
-               "import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\\nimport { HistoryPickerDialog } from './HistoryPickerDialog.js'\\n"),
-              ("  const historyDelete = useHistoryDelete()\\n",
-               "  const historyDelete = useHistoryDelete()\\n  const [historyPickerOpen, setHistoryPickerOpen] = useState(false)\\n"),
-              ("              <ApiKeyField editor={apiKeyEditor} />\\n",
+              ("import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\n",
+               "import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\nimport { HistoryPickerDialog } from './HistoryPickerDialog.js'\n"),
+              ("  const historyDelete = useHistoryDelete()\n",
+               "  const historyDelete = useHistoryDelete()\n  const [historyPickerOpen, setHistoryPickerOpen] = useState(false)\n"),
+              ("              <ApiKeyField editor={apiKeyEditor} />\n",
                """              <ApiKeyField editor={apiKeyEditor} />
                 <SettingCell
                   label={t('historyPickerSettingLabel')}
@@ -73,7 +73,7 @@ jobs:
                   }
                 />
           """),
-              ("      </Modal>\\n      {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}\\n",
+              ("      </Modal>\n      {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}\n",
                """      </Modal>
                 <HistoryPickerDialog
                   open={historyPickerOpen}
