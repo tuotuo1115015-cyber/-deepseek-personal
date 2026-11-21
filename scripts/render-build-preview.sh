@@ -1,0 +1,210 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(pwd)"
+SOURCE_ZIP="deepseek-personal-v0.2.0-source.zip"
+EXTRACT_DIR="extracted"
+APP_DIR="$EXTRACT_DIR/deepseek-personal-v0.2.0"
+
+test -f "$SOURCE_ZIP"
+rm -rf "$EXTRACT_DIR" publish
+mkdir -p "$EXTRACT_DIR"
+unzip -q "$SOURCE_ZIP" -d "$EXTRACT_DIR"
+
+cd "$APP_DIR"
+git apply ../../patches/model-selector-position.patch
+
+python - <<'PY'
+from pathlib import Path
+
+def replace_once(path, old, new):
+    source = path.read_text()
+    if old not in source:
+        raise SystemExit("Source anchor missing in " + str(path) + ": " + old[:70])
+    path.write_text(source.replace(old, new, 1))
+
+settings = Path("src/components/settings/SettingsDialog.tsx")
+replace_once(settings,
+    "import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\n",
+    "import { ApiKeyConfirm, ApiKeyField, useApiKeyEditor } from './ApiKeyField.js'\nimport { HistoryPickerDialog } from './HistoryPickerDialog.js'\n")
+replace_once(settings,
+    "  const historyDelete = useHistoryDelete()\n",
+    "  const historyDelete = useHistoryDelete()\n  const [historyPickerOpen, setHistoryPickerOpen] = useState(false)\n")
+replace_once(settings,
+    "              <ApiKeyField editor={apiKeyEditor} />\n",
+    """              <ApiKeyField editor={apiKeyEditor} />
+              <SettingCell
+                label={t('historyPickerSettingLabel')}
+                description={t('historyPickerSettingDescription')}
+                status={null}
+                action={
+                  <Button
+                    variant="outlined"
+                    size="m"
+                    className={styles.cellButton}
+                    disabled={historyBusy}
+                    onClick={() => setHistoryPickerOpen(true)}
+                  >
+                    {t('historyPickerOpen')}
+                  </Button>
+                }
+              />
+          """)
+replace_once(settings,
+    "      </Modal>\n      {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}\n",
+    """      </Modal>
+                <HistoryPickerDialog
+                  open={historyPickerOpen}
+                  historyBusy={historyBusy}
+                  onClose={() => setHistoryPickerOpen(false)}
+                  onReplace={(file) => {
+                    setHistoryPickerOpen(false)
+                    historyImport.select(file)
+                  }}
+                />
+                {historyImport.file ? <ImportConfirm historyImport={historyImport} /> : null}
+          """)
+
+chat_input = Path("src/components/chatInput/ChatInput.tsx")
+replace_once(chat_input,
+    "if (saved === 'deepseek-flash' || saved === 'deepseek-v4-pro') return saved",
+    "if (saved === 'deepseek-flash' || saved === 'deepseek-v4-pro') { return saved }")
+replace_once(chat_input,
+    "if (previous?.role === 'assistant' && previous.model) return previous.model",
+    "if (previous?.role === 'assistant' && previous.model) { return previous.model }")
+replace_once(chat_input,
+    "if (createdSessionId) saveSessionModel(createdSessionId, selectedModel)",
+    "if (createdSessionId) { saveSessionModel(createdSessionId, selectedModel) }")
+replace_once(chat_input,
+    "if (blurTimerRef.current) clearTimeout(blurTimerRef.current)",
+    "if (blurTimerRef.current) { clearTimeout(blurTimerRef.current) }")
+replace_once(chat_input,
+    "if (!wrapper?.contains(document.activeElement)) setInputActive(false)",
+    "if (!wrapper?.contains(document.activeElement)) { setInputActive(false) }")
+
+zh_keys = """  historyPickerSettingLabel: '对话挑选与合并',
+    historyPickerSettingDescription: '从历史 ZIP 中挑选、比较并合并对话，或将结果替换本地历史。',
+    historyPickerOpen: '打开工具',
+    historyPickerTitle: '对话挑选与合并',
+    historyPickerIntro: '在本机处理 ZIP 文件。生成的文件可通过现有导入功能恢复。',
+    historyPickerPickTab: '选取',
+    historyPickerMergeTab: '合并',
+    historyPickerChooseZip: '选择 ZIP',
+    historyPickerAddCompareZip: '添加对比 ZIP',
+    historyPickerAddZip: '添加 ZIP',
+    historyPickerAddLocal: '添加本地历史',
+    historyPickerReading: '正在读取 ZIP…',
+    historyPickerLoaded: '已载入 {packages} 个包，共 {sessions} 个对话。',
+    historyPickerReadFailed: '读取失败',
+    historyPickerExportingLocal: '正在导出本地历史…',
+    historyPickerLocalAdded: '已添加本地历史，共 {count} 个对话。',
+    historyPickerPickHint: '先选择一个 ZIP。可再添加另一个 ZIP 比较重复对话。重新选择会替换当前已载入的包。',
+    historyPickerMergeHint: '添加至少两个 ZIP，或将本地历史作为一个来源包加入。',
+    historyPickerSearch: '按对话标题搜索',
+    historyPickerSelectAll: '全选',
+    historyPickerSelectNone: '全不选',
+    historyPickerInvert: '反选',
+    historyPickerSelectedCount: '已勾选 {selected} 项 / {total} 项，去重后 {unique} 个对话',
+    historyPickerPackageCount: '{count} 个对话 · 已选 {selected}',
+    historyPickerSelectPackage: '全选本包',
+    historyPickerClearPackage: '清空本包',
+    historyPickerRemovePackage: '移除',
+    historyPickerImageCount: '{count} 张图片',
+    historyPickerDuplicateMark: '另一包也有',
+    historyPickerPreviewTruncated: '…（仅预览前 30000 字符）',
+    historyPickerPreviewFailed: '预览读取失败',
+    historyPickerPreviewLoading: '正在读取预览…',
+    historyPickerDuplicates: '重复对话对比（{count}）',
+    historyPickerDuplicateHint: '同一对话 ID 出现在多个包中。若重复项都被勾选，默认保留更新时间较新的版本。',
+    historyPickerUseNewer: '取更新的（默认）',
+    historyPickerUsePackage: '使用 {name}',
+    historyPickerNewest: '更新',
+    historyPickerDuplicateChoice: '重复对话版本',
+    historyPickerFilename: '文件名（留空自动命名）',
+    historyPickerAutoName: '自动命名',
+    historyPickerOmitImages: '不带图片原件（对话文字不受影响）',
+    historyPickerBuild: '生成 ZIP',
+    historyPickerBuilding: '正在生成…',
+    historyPickerNeedTwoPackages: '合并至少需要 2 个包，请再添加一个 ZIP。',
+    historyPickerProgressConversations: '复制对话',
+    historyPickerProgressImages: '复制图片',
+    historyPickerProgressIndex: '重建索引',
+    historyPickerProgressPacking: '打包 ZIP',
+    historyPickerProgressDone: '完成',
+    historyPickerGenerated: '已生成 ZIP，大小 {size}。',
+    historyPickerBuildFailed: '生成失败',
+    historyPickerReplaceWarning: '直接替换会覆盖本地全部对话。想保留的本地对话需已勾选。',
+    historyPickerDownload: '下载 ZIP',
+    historyPickerReplaceLocal: '直接替换本地',
+  """
+en_keys = """  historyPickerSettingLabel: 'Pick and merge chats',
+    historyPickerSettingDescription: 'Select, compare, and merge chats from history ZIP files, or replace local history with the result.',
+    historyPickerOpen: 'Open tool',
+    historyPickerTitle: 'Pick and merge chats',
+    historyPickerIntro: 'ZIP files are processed locally. The generated file can be restored with the existing import flow.',
+    historyPickerPickTab: 'Pick',
+    historyPickerMergeTab: 'Merge',
+    historyPickerChooseZip: 'Choose ZIP',
+    historyPickerAddCompareZip: 'Add comparison ZIP',
+    historyPickerAddZip: 'Add ZIP',
+    historyPickerAddLocal: 'Add local history',
+    historyPickerReading: 'Reading ZIP…',
+    historyPickerLoaded: 'Loaded {packages} packages and {sessions} chats.',
+    historyPickerReadFailed: 'Failed to read ZIP',
+    historyPickerExportingLocal: 'Exporting local history…',
+    historyPickerLocalAdded: 'Added local history with {count} chats.',
+    historyPickerPickHint: 'Choose one ZIP first. Add another ZIP to compare duplicate chats. Choosing a new ZIP replaces the currently loaded package.',
+    historyPickerMergeHint: 'Add at least two ZIP files, or add local history as a source package.',
+    historyPickerSearch: 'Search chat titles',
+    historyPickerSelectAll: 'Select all',
+    historyPickerSelectNone: 'Select none',
+    historyPickerInvert: 'Invert',
+    historyPickerSelectedCount: '{selected} of {total} checked, {unique} unique chats',
+    historyPickerPackageCount: '{count} chats · {selected} selected',
+    historyPickerSelectPackage: 'Select package',
+    historyPickerClearPackage: 'Clear package',
+    historyPickerRemovePackage: 'Remove',
+    historyPickerImageCount: '{count} images',
+    historyPickerDuplicateMark: 'Also in another package',
+    historyPickerPreviewTruncated: '… (preview limited to the first 30,000 characters)',
+    historyPickerPreviewFailed: 'Could not load preview',
+    historyPickerPreviewLoading: 'Loading preview…',
+    historyPickerDuplicates: 'Duplicate chat comparison ({count})',
+    historyPickerDuplicateHint: 'The same chat ID appears in multiple packages. If duplicate entries are both selected, the newest version is kept by default.',
+    historyPickerUseNewer: 'Use newest (default)',
+    historyPickerUsePackage: 'Use {name}',
+    historyPickerNewest: 'Newest',
+    historyPickerDuplicateChoice: 'Duplicate chat version',
+    historyPickerFilename: 'File name (leave blank for automatic naming)',
+    historyPickerAutoName: 'Automatic name',
+    historyPickerOmitImages: 'Omit original images (chat text is unchanged)',
+    historyPickerBuild: 'Generate ZIP',
+    historyPickerBuilding: 'Generating…',
+    historyPickerNeedTwoPackages: 'Merging requires at least two packages. Add another ZIP.',
+    historyPickerProgressConversations: 'Copying chats',
+    historyPickerProgressImages: 'Copying images',
+    historyPickerProgressIndex: 'Rebuilding index',
+    historyPickerProgressPacking: 'Packing ZIP',
+    historyPickerProgressDone: 'Done',
+    historyPickerGenerated: 'ZIP generated ({size}).',
+    historyPickerBuildFailed: 'Failed to generate ZIP',
+    historyPickerReplaceWarning: 'Replacing local history overwrites all local chats. Select every local chat you want to keep.',
+    historyPickerDownload: 'Download ZIP',
+    historyPickerReplaceLocal: 'Replace local history',
+  """
+replace_once(Path("src/i18n/zh.ts"), "  historyImport: '导入历史对话',\n", zh_keys + "  historyImport: '导入历史对话',\n")
+replace_once(Path("src/i18n/en.ts"), "  historyImport: 'Import chat history',\n", en_keys + "  historyImport: 'Import chat history',\n")
+PY
+
+cp -R ../../overlays/. .
+test -f src/services/chat/history/mergeArchive.ts
+test -f src/components/settings/HistoryPickerDialog.tsx
+
+npx --yes pnpm@10 install --frozen-lockfile
+npx --yes pnpm@10 type
+npx --yes pnpm@10 lint
+npx --yes pnpm@10 build
+
+cd "$ROOT"
+mkdir -p publish
+cp -R "$APP_DIR/dist/." publish/
