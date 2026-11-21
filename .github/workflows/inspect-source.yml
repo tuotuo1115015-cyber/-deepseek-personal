@@ -6,6 +6,7 @@ on:
     paths:
       - "deepseek-personal-v0.2.0-source.zip"
       - ".github/workflows/inspect-source.yml"
+      - "patches/model-selector-position.patch"
   workflow_dispatch:
 
 permissions:
@@ -25,6 +26,13 @@ jobs:
           mkdir -p extracted
           unzip -q deepseek-personal-v0.2.0-source.zip -d extracted
           find extracted -maxdepth 4 -type f | sort | sed -n '1,200p'
+
+      - name: Apply model selector placement patch
+        run: |
+          set -euo pipefail
+          cd extracted/deepseek-personal-v0.2.0
+          git apply ../../patches/model-selector-position.patch
+          grep -n -A24 'className={styles.right}' src/components/chatInput/ChatInput.tsx
 
       - name: Set up pnpm
         uses: pnpm/action-setup@v4
