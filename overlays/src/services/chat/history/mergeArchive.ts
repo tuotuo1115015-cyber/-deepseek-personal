@@ -178,7 +178,7 @@ export const buildMergedArchive = async (
   if (!omitImages) {
     for (const { pack, session } of chosen) {
       if (!session.images.length) continue
-      selectedImagePaths.set(\`\${pack.id}\0\${session.id}\`, new Set(session.images.map((image) => image.path)))
+      selectedImagePaths.set(`${pack.id}\0${session.id}`, new Set(session.images.map((image) => image.path)))
       imageCount += session.images.length
       imageBytesTotal += session.images.reduce((sum, image) => sum + image.size, 0)
     }
@@ -188,7 +188,7 @@ export const buildMergedArchive = async (
   if (imageCount) {
     const byPackage = new Map<string, Array<{ pack: ArchivePackage; session: ArchiveSession }>>()
     for (const item of chosen) {
-      if (!selectedImagePaths.has(\`\${item.pack.id}\0\${item.session.id}\`)) continue
+      if (!selectedImagePaths.has(`${item.pack.id}\0${item.session.id}`)) continue
       const list = byPackage.get(item.pack.id) ?? []
       list.push(item)
       byPackage.set(item.pack.id, list)
@@ -233,5 +233,5 @@ export const sanitizeArchiveName = (value: string, fallback: string): string => 
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 80)
-  return \`\${clean || 'DeepSeek 对话'}.zip\`.replace(/\.zip\.zip$/i, '.zip')
+  return `${clean || 'DeepSeek 对话'}.zip`.replace(/\.zip\.zip$/i, '.zip')
 }
