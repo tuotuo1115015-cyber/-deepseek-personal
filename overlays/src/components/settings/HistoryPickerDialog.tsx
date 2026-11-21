@@ -17,7 +17,7 @@ import styles from './HistoryPickerDialog.module.css'
 
 type Mode = 'pick' | 'merge'
 type Props = { open: boolean; historyBusy: boolean; onClose: () => void; onReplace: (file: File) => void }
-const keyOf = (packageId: string, sessionId: string) => `${packageId}\0${sessionId}`
+const keyOf = (packageId: string, sessionId: string) => `${packageId}::${sessionId}`
 const formatSize = (bytes: number) => bytes < 1024 * 1024 ? `${(bytes / 1024).toFixed(1)} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`
 const formatDate = (value: string) => value ? value.slice(0, 16).replace('T', ' ') : ''
 const progressLabels = {
@@ -41,7 +41,7 @@ const SessionRow = ({
   const [preview, setPreview] = useState('')
   const [loaded, setLoaded] = useState(false)
   const loadPreview = async () => {
-    if (loaded) return
+    if (loaded) { return }
     setLoaded(true)
     try {
       const source = await session.json.text()
@@ -56,7 +56,7 @@ const SessionRow = ({
     <div className={styles.sessionRow}>
       <input className={styles.checkbox} type="checkbox" checked={selected} aria-label={session.title} onChange={(event) => onToggle(event.target.checked)} />
       <details className={styles.sessionDetails} onToggle={(event) => {
-        if ((event.currentTarget as HTMLDetailsElement).open) void loadPreview()
+        if ((event.currentTarget as HTMLDetailsElement).open) { void loadPreview() }
       }}>
         <summary className={styles.sessionSummary}>
           <span className={styles.sessionTitle}>{session.title}</span>
@@ -119,7 +119,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   const autoName = chosen.length === 0 ? '' : chosen.length === 1 ? chosen[0].session.title : `${chosen[0].session.title}等${chosen.length}个`
 
   const loadFiles = async (files: File[], append: boolean) => {
-    if (!files.length || busy) return
+    if (!files.length || busy) { return }
     setBusy(true)
     setStatus(t('historyPickerReading'))
     setGenerated(null)
@@ -131,9 +131,9 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
         added.push(await readArchivePackage(file, id))
       }
       const next = append ? [...current, ...added] : added.slice(0, 1)
-      if (mode === 'pick') setPickPackages(next)
-      else setMergePackages(next)
-      if (!append) setSelection({})
+      if (mode === 'pick') { setPickPackages(next) }
+      else { setMergePackages(next) }
+      if (!append) { setSelection({}) }
       setPreferences({})
       setStatus(t('historyPickerLoaded', { packages: next.length, sessions: next.reduce((sum, pack) => sum + pack.sessions.length, 0) }))
     } catch {
@@ -144,7 +144,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   }
 
   const addLocalHistory = async () => {
-    if (busy) return
+    if (busy) { return }
     setBusy(true)
     setStatus(t('historyPickerExportingLocal'))
     try {
@@ -163,7 +163,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   const setPackageSelection = (pack: ArchivePackage, checked: boolean) => {
     setSelection((current) => {
       const next = { ...current }
-      for (const session of pack.sessions) next[keyOf(pack.id, session.id)] = checked
+      for (const session of pack.sessions) { next[keyOf(pack.id, session.id)] = checked }
       return next
     })
     setGenerated(null)
@@ -176,7 +176,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
     setSelection((current) => {
       const next = { ...current }
       for (const { pack, session } of allSessions) {
-        if (!filtered(session)) continue
+        if (!filtered(session)) { continue }
         const key = keyOf(pack.id, session.id)
         next[key] = action === 'all' ? true : action === 'none' ? false : !current[key]
       }
@@ -186,7 +186,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   }
 
   const build = async () => {
-    if (!canBuild) return
+    if (!canBuild) { return }
     setBusy(true)
     setGenerated(null)
     setProgress({ stage: 'conversations', percent: 0, detail: '' })
@@ -204,7 +204,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
   }
 
   const download = () => {
-    if (!generated) return
+    if (!generated) { return }
     const url = URL.createObjectURL(generated)
     const link = document.createElement('a')
     link.href = url
@@ -219,10 +219,10 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
     setStatus('')
     setProgress(null)
   }
-  if (!open) return null
+  if (!open) { return null }
 
   return (
-    <Modal title={t('historyPickerTitle')} className={styles.dialog} mainClassName={styles.main} onClose={() => { if (!busy) onClose() }}>
+    <Modal title={t('historyPickerTitle')} className={styles.dialog} mainClassName={styles.main} onClose={() => { if (!busy) { onClose() } }}>
       <div className={styles.intro}>{t('historyPickerIntro')}</div>
       <div className={styles.tabs} role="tablist">
         <button type="button" role="tab" aria-selected={mode === 'pick'} className={mode === 'pick' ? styles.activeTab : ''} onClick={() => changeMode('pick')}>{t('historyPickerPickTab')}</button>
@@ -233,8 +233,8 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
           <>
             <Button variant="outlined" size="m" disabled={busy} onClick={() => pickInput.current?.click()}>{t('historyPickerChooseZip')}</Button>
             <Button variant="outlined" size="m" disabled={busy || pickPackages.length === 0} onClick={() => mergeInput.current?.click()}>{t('historyPickerAddCompareZip')}</Button>
-            <input ref={pickInput} hidden type="file" accept=".zip,application/zip" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void loadFiles([file], false) }} />
-            <input ref={mergeInput} hidden type="file" accept=".zip,application/zip" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void loadFiles([file], true) }} />
+            <input ref={pickInput} hidden type="file" accept=".zip,application/zip" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) { void loadFiles([file], false) } }} />
+            <input ref={mergeInput} hidden type="file" accept=".zip,application/zip" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) { void loadFiles([file], true) } }} />
           </>
         ) : (
           <>
@@ -263,7 +263,7 @@ export const HistoryPickerDialog = ({ open, historyBusy, onClose, onReplace }: P
                   <div className={styles.packageActions}>
                     <Button variant="outlined" size="s" onClick={() => setPackageSelection(pack, true)}>{t('historyPickerSelectPackage')}</Button>
                     <Button variant="outlined" size="s" onClick={() => setPackageSelection(pack, false)}>{t('historyPickerClearPackage')}</Button>
-                    <Button variant="outlined" size="s" onClick={() => { setMergePackages((current) => current.filter((item) => item.id !== pack.id)); setSelection((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${pack.id}\0`)))); setGenerated(null) }}>{t('historyPickerRemovePackage')}</Button>
+                    <Button variant="outlined" size="s" onClick={() => { setMergePackages((current) => current.filter((item) => item.id !== pack.id)); setSelection((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${pack.id}::`)))); setGenerated(null) }}>{t('historyPickerRemovePackage')}</Button>
                   </div>
                 ) : null}
                 {pack.sessions.filter(filtered).map((session) => (
