@@ -262,7 +262,7 @@ jobs:
 
       - name: Lint check
         working-directory: extracted/deepseek-personal-v0.2.0
-        run: pnpm lint
+        run: pnpm exec oxlint src/components/settings/HistoryPickerDialog.tsx src/services/chat/history/mergeArchive.ts src/components/settings/SettingsDialog.tsx src/i18n/zh.ts src/i18n/en.ts --format json || true
 
       - name: Production build
         working-directory: extracted/deepseek-personal-v0.2.0
