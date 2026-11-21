@@ -1,56 +1,6 @@
-name: Build DeepSeek Personal
+name: Archived duplicate build workflow
 
-on:
-  push:
-    branches: [main]
-    paths:
-      - "deepseek-personal-v0.2.0-source.zip"
-      - ".github/workflows/build.yml"
-  workflow_dispatch:
+on: []
 
-permissions:
-  contents: read
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.12.0
-          cache: pnpm
-          cache-dependency-path: extracted/deepseek-personal-v0.2.0/pnpm-lock.yaml
-
-      - name: Extract source
-        run: |
-          mkdir -p extracted
-          unzip -q deepseek-personal-v0.2.0-source.zip -d extracted
-
-      - name: Install dependencies
-        working-directory: extracted/deepseek-personal-v0.2.0
-        run: pnpm install --frozen-lockfile
-
-      - name: TypeScript check
-        working-directory: extracted/deepseek-personal-v0.2.0
-        run: pnpm type
-
-      - name: Production build
-        working-directory: extracted/deepseek-personal-v0.2.0
-        run: pnpm build
-
-      - name: Upload production build
-        uses: actions/upload-artifact@v4
-        with:
-          name: deepseek-personal-dist
-          path: extracted/deepseek-personal-v0.2.0/dist/
-          if-no-files-found: error
-          retention-days: 7
+# The active cloud build is maintained in inspect-source.yml.
+# This file is intentionally disabled to prevent duplicate runs.
