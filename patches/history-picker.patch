@@ -39,8 +39,7 @@
                <ImportHistory historyImport={historyImport} disabled={historyBusy} />
                <ExportHistory disabled={historyBusy} />
                <SettingCell
-@@ -130,1 +148,10 @@
-       {historyDelete.opened ? <DeleteAllConfirm historyDelete={historyDelete} /> : null}
+@@ -128,1 +146,10 @@
 +      <HistoryPickerDialog
 +        open={historyPickerOpen}
 +        historyBusy={historyBusy}
@@ -50,6 +49,7 @@
 +          historyImport.select(file)
 +        }}
 +      />
+       </Modal>
 --- a/src/i18n/zh.ts
 +++ b/src/i18n/zh.ts
 @@ -105,6 +105,60 @@
