@@ -208,33 +208,6 @@ jobs:
           replace_once(Path("src/i18n/zh.ts"), "  historyImport: '导入历史对话',\n", zh_keys + "  historyImport: '导入历史对话',\n")
           replace_once(Path("src/i18n/en.ts"), "  historyImport: 'Import chat history',\n", en_keys + "  historyImport: 'Import chat history',\n")
 
-          reader = Path("src/services/chat/history/zipReader.ts")
-          old_reader = "\\n".join([
-              "export const readEntry = async (entry: ArchiveEntry): Promise<Blob> => {",
-              "  const parts: Blob[] = []",
-              "  for await (const chunk of entry.stream) {",
-              "    parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))",
-              "  }",
-              "  return new Blob(parts)",
-              "}",
-          ])
-          new_reader = "\\n".join([
-              "export const readEntry = async (",
-              "  entry: ArchiveEntry,",
-              "  onChunk?: (read: number, total: number) => void",
-              "): Promise<Blob> => {",
-              "  const parts: Blob[] = []",
-              "  let read = 0",
-              "  for await (const chunk of entry.stream) {",
-              "    parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))",
-              "    read += chunk.byteLength",
-              "    onChunk?.(read, entry.size)",
-              "  }",
-              "  return new Blob(parts)",
-              "}",
-          ])
-          replace_once(reader, old_reader, new_reader)
-
           writer = Path("src/services/chat/history/zipWriter.ts")
           replace_once(writer,
               "export const writeArchive = async (entries: { name: string; blob: Blob }[]): Promise<Blob> => {",
