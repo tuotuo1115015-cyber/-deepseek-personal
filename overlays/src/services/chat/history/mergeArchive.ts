@@ -97,7 +97,8 @@ export const readArchivePackage = async (file: File, id: string): Promise<Archiv
   }
 
   const finalIndex = index
-  if (!manifestSeen || finalIndex === null) fail('Missing manifest or session index')
+  if (!manifestSeen) throw new Error('Missing manifest')
+  if (finalIndex === null) throw new Error('Missing session index')
   const indexIds = new Set(finalIndex.map((item) => item.id))
   if (indexIds.size !== finalIndex.length || finalIndex.length !== sessions.size) fail('Index does not match sessions')
   for (const sessionId of sessions.keys()) if (!indexIds.has(sessionId)) fail('Session missing from index')
