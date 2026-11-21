@@ -6,7 +6,7 @@ import {
 } from './format.js'
 import { INDEX_PATH, MANIFEST_PATH, parseSessionPath, sessionPath } from './paths.js'
 import { checkManifest, readSessionFile, readSessionIndex } from './schema.js'
-import { ArchiveError, isZipFile, readArchive, readEntry, skipEntry } from './zipReader.js'
+import { ArchiveError, isZipFile, readArchive, readEntry, skipEntry, type ArchiveEntry } from './zipReader.js'
 import { writeArchive } from './zipWriter.js'
 
 export type ArchiveImage = { path: string; size: number }
@@ -34,6 +34,16 @@ export type MergeProgress = {
 }
 
 const parseJson = async (blob: Blob): Promise<unknown> => JSON.parse(await blob.text())
+const readBlobWithProgress = async (entry: ArchiveEntry, onChunk: (read: number) => void): Promise<Blob> => {
+  const parts: Blob[] = []
+  let read = 0
+  for await (const chunk of entry.stream) {
+    parts.push(new Blob([chunk as Uint8Array<ArrayBuffer>]))
+    read += chunk.byteLength
+    onChunk(read)
+  }
+  return new Blob(parts)
+}
 const fail = (message: string): never => { throw new Error(message) }
 
 /** Validate a v3 archive. Session JSON stays as Blob references; image entries are skipped. */
@@ -189,7 +199,7 @@ export const buildMergedArchive = async (
       for await (const entry of readArchive(pack.file)) {
         if (wanted.has(entry.path)) {
           const imageStart = imageBytesDone
-          const blob = await readEntry(entry, (read) => {
+          const blob = await readBlobWithProgress(entry, (read) => {
             const percent = imageBytesTotal
               ? 24 + Math.round(((imageStart + read) / imageBytesTotal) * 36)
               : 60
