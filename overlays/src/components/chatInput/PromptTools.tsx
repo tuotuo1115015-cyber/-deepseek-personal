@@ -43,7 +43,7 @@ export function PromptTools({ onInsert, onOpenCanvas }: {
   return <>
     <button type="button" className={styles.toolButton} aria-label="快捷指令库" title="快捷指令库" onClick={() => setOpen(true)}>⌘</button>
     <button type="button" className={styles.toolButton} aria-label="空白画布" title="空白画布" onClick={onOpenCanvas}>▤</button>
-    {open ? <div className={styles.backdrop} onMouseDown={e => { if (e.target === e.currentTarget) setOpen(false) }}>
+    {open ? <div className={styles.backdrop} onMouseDown={e => { if (e.target === e.currentTarget) { setOpen(false) } }}>
       <section className={styles.panel} role="dialog" aria-modal="true" aria-label="快捷指令库">
         <header className={styles.header}><div><strong>快捷指令库</strong><small>点击片段，插入到当前光标处</small></div><button onClick={() => setOpen(false)}>×</button></header>
         <nav className={styles.categories}>{categories.map(c => <button className={category === c ? styles.active : ''} key={c} onClick={() => setCategory(c)}>{c}</button>)}</nav>
