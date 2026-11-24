@@ -13,6 +13,7 @@ unzip -q "$SOURCE_ZIP" -d "$EXTRACT_DIR"
 
 cd "$APP_DIR"
 git apply ../../patches/model-selector-position.patch
+python ../../scripts/patch-composer.py
 
 python - <<'PY'
 from pathlib import Path
