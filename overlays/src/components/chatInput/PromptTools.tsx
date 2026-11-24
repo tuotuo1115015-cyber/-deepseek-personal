@@ -14,7 +14,7 @@ const readShortcuts = (): Shortcut[] => {
     const value = localStorage.getItem(STORAGE_KEY)
     if (value) {
       const parsed = JSON.parse(value) as Shortcut[]
-      if (Array.isArray(parsed)) return parsed
+      if (Array.isArray(parsed)) { return parsed }
     }
   } catch { /* use defaults */ }
   return DEFAULTS
@@ -34,7 +34,7 @@ export function PromptTools({ onInsert, onOpenCanvas }: {
   const categories = useMemo(() => ['全部', ...Array.from(new Set(items.map(x => x.category)))], [items])
   useEffect(() => saveShortcuts(items), [items])
   const commit = () => {
-    if (!editing || !editing.title.trim() || !editing.content) return
+    if (!editing || !editing.title.trim() || !editing.content) { return }
     setItems(current => current.some(x => x.id === editing.id)
       ? current.map(x => x.id === editing.id ? editing : x)
       : [...current, { ...editing, id: `custom-${Date.now()}` }])
