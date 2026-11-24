@@ -76,12 +76,6 @@ replace_once(chat_input,
 replace_once(chat_input,
     "if (createdSessionId) saveSessionModel(createdSessionId, selectedModel)",
     "if (createdSessionId) { saveSessionModel(createdSessionId, selectedModel) }")
-replace_once(chat_input,
-    "if (blurTimerRef.current) clearTimeout(blurTimerRef.current)",
-    "if (blurTimerRef.current) { clearTimeout(blurTimerRef.current) }")
-replace_once(chat_input,
-    "if (!wrapper?.contains(document.activeElement)) setInputActive(false)",
-    "if (!wrapper?.contains(document.activeElement)) { setInputActive(false) }")
 
 zh_keys = """  historyPickerSettingLabel: '对话挑选与合并',
     historyPickerSettingDescription: '从历史 ZIP 中挑选、比较并合并对话，或将结果替换本地历史。',
